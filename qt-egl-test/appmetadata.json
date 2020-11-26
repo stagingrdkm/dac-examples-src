@@ -1,0 +1,17 @@
+{
+    "id": "com.rdk.qt-egl-test",
+    "type": "application/vnd.rdk-app.dac.native",
+    "version": "1.0.0",
+    "description": "Simple qt egl demo",
+    "priority": "optional",
+    "graphics": true,
+    "network": {
+        "type": "open"
+    },
+    "storage": {},
+    "resources": {
+        "ram": "128M"
+    },
+    "features": [],
+    "mounts": []
+}
