@@ -1,21 +1,29 @@
 #include <SDL.h>
 #include <SDL_opengles2.h>
 #include <GLES2/gl2.h>
+#include <chrono>
 
 
 // Shader sources
 const GLchar* vertexSource =
-    "attribute vec4 position;                    \n"
+    "#version 100                                \n"
+    "precision mediump float;                    \n"
+    "attribute vec2 position;                    \n"
     "void main()                                 \n"
     "{                                           \n"
-    "   gl_Position = vec4(position.xyz, 1.0);   \n"
+    "   gl_Position = vec4(position, 0.0, 1.0);  \n"
     "}                                           \n";
 
 const GLchar* fragmentSource =
-    "void main()                                 \n"
-    "{                                           \n"
-    "  gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);  \n"
-    "}                                           \n";
+    "#version 100                  \n"
+    "precision mediump float;      \n"
+    "uniform float uniformColor1;  \n"
+    "uniform float uniformColor2;  \n"
+    "void main()                   \n"
+    "{                             \n"
+    "    gl_FragColor = vec4(uniformColor1, 0.0, uniformColor2, 1.0); \n"
+    "}                             \n";
+
 
 const unsigned int DISP_WIDTH = 640;
 const unsigned int DISP_HEIGHT = 480;
@@ -32,6 +40,7 @@ GLuint vboCreate(const GLfloat *vertices, GLuint verticesSize) {
     // Copy the vertex data in, and deactivate
     glBufferData(GL_ARRAY_BUFFER, verticesSize, vertices,
     GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Check for problems
     GLenum err = glGetError();
@@ -80,6 +89,9 @@ GLuint shaderLoad(const GLchar* source, GLenum shaderType) {
 
 int main(int argc, char** argv)
 {
+    // Store app start time.
+    auto timeStart = std::chrono::high_resolution_clock::now();
+
     // The window
     SDL_Window *window = NULL;
     // The OpenGL context
@@ -96,9 +108,15 @@ int main(int argc, char** argv)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+
 
     window = SDL_CreateWindow("GLES2+SDL2 Window", SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED, DISP_WIDTH, DISP_HEIGHT,
@@ -117,12 +135,13 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    SDL_GL_SetSwapInterval(0);
-
     // Triangle params
-    const GLfloat vertices[] = {0.0f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f};
+    const GLfloat vertices[] = {0.0f,  0.5f,
+                                0.5f, -0.5f,
+                               -0.5f, -0.5f};
+
     const GLsizei vertSize = sizeof(vertices);
-    
+
     // Creates the Vertex Buffer Object (VBO)
     GLuint vbo = vboCreate(vertices, vertSize);
     if (!vbo) {
@@ -132,6 +151,7 @@ int main(int argc, char** argv)
     // Create vertex shader
     GLuint vertexShader = shaderLoad(vertexSource, GL_VERTEX_SHADER);
     if (!vertexShader) {
+        SDL_Log("Couldn't load vertex shader.\n");
         return EXIT_FAILURE;
     }
 
@@ -139,6 +159,8 @@ int main(int argc, char** argv)
     // Create fragment shader
     GLuint fragmentShader = shaderLoad(fragmentSource, GL_FRAGMENT_SHADER);
     if (!fragmentShader) {
+        SDL_Log("Couldn't load fragment shader.\n");
+        glDeleteShader(vertexShader);
         return EXIT_FAILURE;
     }
 
@@ -160,7 +182,6 @@ int main(int argc, char** argv)
            
             if (errLog) {
                 glGetProgramInfoLog(shaderProg, logLength, &logLength, errLog);
-
                 SDL_Log("%s\n", errLog);
                 free(errLog);
             }
@@ -176,40 +197,71 @@ int main(int argc, char** argv)
     }
 
     if (!shaderProg) {
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
         return EXIT_FAILURE;
     }
 
     glUseProgram(shaderProg);
 
-    // Specify the layout of the vertex data
-    GLuint positionIdx = 0;
-    glVertexAttribPointer(positionIdx, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
-    glEnableVertexAttribArray(positionIdx);
+    float fragmentColor1 = 0.5f;
+    bool running = true;
 
-    while(1)
-    {
-        SDL_Event e;
-        while(SDL_PollEvent(&e))
-        {
-            if(e.type == SDL_QUIT) {
-                SDL_Log("SDL_QUIT event occurs\n");
-                glDeleteBuffers(1, &vbo);
-                vbo = 0;
-                glDeleteProgram(shaderProg);
-                shaderProg = 0;
-                return 0;
+    while(running) {
+        SDL_Event event;
+        while(SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                SDL_Log("SDL_QUIT event occured\n");
+                running = false;
+                break;
+            }
+            if (event.type == SDL_KEYDOWN) {
+
+                if (event.key.keysym.sym == SDLK_UP) {
+                    if (fragmentColor1 < 1.0f) {
+                        fragmentColor1 += 0.1f;
+                    }
+                }
+                if (event.key.keysym.sym == SDLK_DOWN) {
+                    if (fragmentColor1 > 0.0f) {
+                        fragmentColor1 -= 0.1f;
+                    }
+                }
             }
         }
 
+        // Set the color of the triangle
+        auto timeNow = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration_cast<std::chrono::duration<float>>(timeNow - timeStart).count();
 
-        // Clear to black
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLint posAttrib = glGetAttribLocation(shaderProg, "position");
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(posAttrib);
+
+        glUseProgram(shaderProg);
+
+        // Get the location of the color uniform
+        GLshort uniColor1 = glGetUniformLocation(shaderProg, "uniformColor1");
+        GLshort uniColor2 = glGetUniformLocation(shaderProg, "uniformColor2");
+
+        // Color set by keyboard input
+        glUniform1f(uniColor1, fragmentColor1);
+
+        // Color which changes with elapsed time
+        glUniform1f(uniColor2, sin(time));
 
         // Draw
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         SDL_GL_SwapWindow(window);
     };
+
+    // Cleanup
+    glDeleteBuffers(1, &vbo);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+    glDeleteProgram(shaderProg);
+
     return 0;
 }
