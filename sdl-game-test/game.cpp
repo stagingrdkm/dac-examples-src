@@ -11,12 +11,15 @@ static const int TILE_HEIGHT = 16;
 static const int TILE_GRID_SIZE = 8;
 static const int WINDOW_WIDTH = 800;
 static const int WINDOW_HEIGHT = 600;
+static const int PLAYER_WIDTH = 24;
+static const int PLAYER_HEIGHT = 26;
 
 Game::Game()
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     { 
-        cout << "error initializing SDL: " << SDL_GetError() << endl; 
+        cout << "error initializing SDL: " << SDL_GetError() << endl;
+        throw std::runtime_error("SDL_Init failed");
     }
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -34,7 +37,8 @@ Game::Game()
 
     if (window == nullptr)
     {
-        cout << "SDL_CreateWindow failed" << endl;
+        cout << "Error during SDL window creation" << endl;
+        throw std::runtime_error("SDL_CreateWindow failed");
     }
 
 
@@ -42,23 +46,28 @@ Game::Game()
 
     if (rend == nullptr)
     {
-        cout << "SDL_CreateRenderer failed" << endl;
+        cout << "Error during SDL renderer creation" << endl;
+        throw std::runtime_error("SDL_CreateRenderer failed");
     }
 
     TTF_Init();
-    font = TTF_OpenFont("/usr/bin/resources/SEASRN.ttf", 32);
+    font = TTF_OpenFont("/usr/share/fonts/truetype/AbyssinicaSIL-R.ttf", 32);
 
-    player.setImage("/usr/bin/resources/player.png", rend);
-    player.setDest(Object::Coordinates{100,380,75,75});
+    if (font == nullptr)
+    {
+        throw std::runtime_error("TTF_OpenFont failed");
+    }
 
-    idle = player.createAnimation(1, 75, 75, 6, 20);
-    runRight = player.createAnimation(3, 75, 75, 6, 10);
-    runLeft = player.createAnimation(2, 75, 75, 6, 10);
+    player.setImage("/usr/share/resources/player.png", rend);
+    player.setDest(Object::Coordinates{100,375,PLAYER_WIDTH*3,PLAYER_HEIGHT*3});
+
+    idle = player.createAnimation(1, PLAYER_WIDTH, PLAYER_HEIGHT, 4, 20);
+    runRight = player.createAnimation(2, PLAYER_WIDTH, PLAYER_HEIGHT, 5, 10);
+    runLeft = player.createAnimation(3, PLAYER_WIDTH, PLAYER_HEIGHT, 5, 10);
 
     player.setCurAnimation(idle);
 
-    loadMap("/usr/bin/resources/1.level");
-
+    loadMap("/usr/share/resources/1.level");
 
     mainLoop();
 
@@ -231,7 +240,7 @@ void Game::loadMap(const string& s)
     inputFile >> mapY;
 
     Object tmpObj;
-    tmpObj.setImage("/usr/bin/resources/mapTile.png", rend);
+    tmpObj.setImage("/usr/share/resources/mapTile.png", rend);
 
 
     for(int h = 0; h < mapHeight; ++h)

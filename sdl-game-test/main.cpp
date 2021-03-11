@@ -1,7 +1,16 @@
 #include "game.hpp"
+#include <exception>
+#include <iostream>
 
 int main(int argc, char const *argv[])
 {
-    Game g;
+    try
+    {
+        Game g;
+    }
+    catch(std::exception& e)
+    {
+        std::cout << e.what() << std::endl;
+    }
     return 0;
 }
