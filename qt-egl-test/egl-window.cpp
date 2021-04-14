@@ -30,6 +30,11 @@ EGLWindow::EGLWindow(QWindow *parent)
 
 EGLWindow::~EGLWindow() {}
 
+/*
+ * Copyright (C) 2018 The Qt Company Ltd.
+ * Licensed under the BSD-3 License - from: https://doc.qt.io/qt-5.12/examples-license.html
+ */
+
 void EGLWindow::render(QPainter *painter) {
   Q_UNUSED(painter);
   color = (color + 1) % 256;

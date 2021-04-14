@@ -1,3 +1,8 @@
+/*
+ * Copyright 2021 RDK Management
+ * Licensed under the Unlicense <http://unlicense.org/>
+ */
+
 //    GL: gcc -o wayland-input wayland-input.c $(pkg-config --cflags --libs wayland-client wayland-egl glesv2 egl xkbcommon)
 // epoxy: gcc -DHAVE_EPOXY -o wayland-input wayland-input.c $(pkg-config --cflags --libs epoxy wayland-client wayland-egl xkbcommon)
 
@@ -101,6 +106,11 @@ static void keyboard_modifiers (void *data, struct wl_keyboard *keyboard, uint32
 }
 static struct wl_keyboard_listener keyboard_listener = {&keyboard_keymap, &keyboard_enter, &keyboard_leave, &keyboard_key, &keyboard_modifiers};
 
+/*
+ * Copyright © 2011 Benjamin Franzke
+ * Licensed under the MIT License
+ */
+
 static void seat_capabilities (void *data, struct wl_seat *seat, uint32_t capabilities) {
 	printf("seat_capabilities(data:%p, seat:%p, capabilities:0x%x)\n", data, seat, capabilities);
 
@@ -119,6 +129,11 @@ static void seat_capabilities (void *data, struct wl_seat *seat, uint32_t capabi
 	}
 }
 static struct wl_seat_listener seat_listener = {&seat_capabilities};
+
+/*
+ * Code from https://github.com/eyelash/tutorials/blob/master/wayland-egl.c
+ * Licensed under the Unlicense License
+ */
 
 static void registry_add_object (void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version) {
 	printf("registry_add_object(data:%p, registry:%p, name:%2u, interface:%s, version:%u)\n", data, registry, name, interface, version);
