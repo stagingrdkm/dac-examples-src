@@ -3,7 +3,8 @@
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2 of the License
+// the Free Software Foundation, either version 2 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,11 +29,6 @@ EGLWindow::EGLWindow(QWindow *parent)
 }
 
 EGLWindow::~EGLWindow() {}
-
-/*
- * Copyright (C) 2018 The Qt Company Ltd.
- * Licensed under the BSD-3 License - from: https://doc.qt.io/qt-5.12/examples-license.html
- */
 
 void EGLWindow::render(QPainter *painter) {
   Q_UNUSED(painter);

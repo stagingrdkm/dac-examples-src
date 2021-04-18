@@ -1,8 +1,3 @@
-/*
- * Copyright 2021 RDK Management
- * Licensed under the Unlicense <http://unlicense.org/>
- */
-
 //    GL: gcc -o wayland-egl wayland-egl.c $(pkg-config --cflags --libs wayland-client wayland-egl glesv2 egl)
 // epoxy: gcc -DHAVE_EPOXY -o wayland-egl wayland-egl.c $(pkg-config --cflags --libs epoxy wayland-client wayland-egl)
 
@@ -23,11 +18,6 @@
 static EGLint swap_interval = 1;
 static int32_t width = 1920;
 static int32_t height = 1080;
-
-/*
- * Code from https://github.com/eyelash/tutorials/blob/master/wayland-egl.c
- * Licensed under the Unlicense License
- */
 
 static struct wl_display *display;
 static struct wl_compositor *compositor = NULL;
